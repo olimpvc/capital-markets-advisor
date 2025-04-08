@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Send } from "lucide-react"
 
@@ -19,18 +18,43 @@ export function ContactForm() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      const formData = new FormData(e.currentTarget)
+      
+      // Google Form submission URL
+      const googleFormUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSe19ZzsyuLsyhd0knoHDui3o8vOLv3ooGQ0N60-WxKuL7NEhQ/formResponse'
+      
+      // Create URL with parameters
+      const formUrl = new URL(googleFormUrl)
+      formUrl.searchParams.append('entry.71619845', formData.get('name') as string)
+      formUrl.searchParams.append('entry.101981237', formData.get('company') as string)
+      formUrl.searchParams.append('entry.72098565', formData.get('email') as string)
+      formUrl.searchParams.append('entry.159268629', formData.get('phone') as string)
+      formUrl.searchParams.append('entry.141120671', formData.get('message') as string)
+
+      // Submit using GET method instead of POST to avoid CORS issues
+      await fetch(formUrl.toString(), {
+        method: 'GET',
+        mode: 'no-cors'
+      })
+
       toast({
         title: "Form submitted",
         description: "Thank you for your inquiry. We'll be in touch shortly.",
       })
 
       // Reset form
-      const form = e.target as HTMLFormElement
-      form.reset()
-    }, 1500)
+      e.currentTarget.reset()
+    } catch (error) {
+      console.error('Error:', error)
+      toast({
+        title: "Error",
+        description: "Failed to submit form. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -39,13 +63,25 @@ export function ContactForm() {
         <Label htmlFor="name" className="text-foreground">
           Name
         </Label>
-        <Input id="name" placeholder="John Smith" required className="border-border focus:border-accent" />
+        <Input 
+          id="name" 
+          name="name"
+          placeholder="John Smith" 
+          required 
+          className="border-border focus:border-accent" 
+        />
       </div>
       <div className="grid gap-3">
         <Label htmlFor="company" className="text-foreground">
           Company
         </Label>
-        <Input id="company" placeholder="Your Company, Inc." required className="border-border focus:border-accent" />
+        <Input 
+          id="company" 
+          name="company"
+          placeholder="Your Company, Inc." 
+          required 
+          className="border-border focus:border-accent" 
+        />
       </div>
       <div className="grid gap-3">
         <Label htmlFor="email" className="text-foreground">
@@ -53,6 +89,7 @@ export function ContactForm() {
         </Label>
         <Input
           id="email"
+          name="email"
           placeholder="john@example.com"
           type="email"
           required
@@ -63,7 +100,13 @@ export function ContactForm() {
         <Label htmlFor="phone" className="text-foreground">
           Phone
         </Label>
-        <Input id="phone" placeholder="+1 (555) 000-0000" type="tel" className="border-border focus:border-accent" />
+        <Input 
+          id="phone" 
+          name="phone"
+          placeholder="+1 (555) 000-0000" 
+          type="tel" 
+          className="border-border focus:border-accent" 
+        />
       </div>
       <div className="grid gap-3">
         <Label htmlFor="message" className="text-foreground">
@@ -71,6 +114,7 @@ export function ContactForm() {
         </Label>
         <Textarea
           id="message"
+          name="message"
           placeholder="Tell us about your IPO plans and how we can help..."
           className="min-h-[150px] border-border focus:border-accent"
           required

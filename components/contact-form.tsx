@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Send } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -13,38 +13,62 @@ import { useToast } from "@/hooks/use-toast"
 export function ContactForm() {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
 
-    try {
-      const formData = new FormData(e.currentTarget)
-      
-      // Google Form submission URL
-      const googleFormUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSe19ZzsyuLsyhd0knoHDui3o8vOLv3ooGQ0N60-WxKuL7NEhQ/formResponse'
-      
-      // Create URL with parameters
-      const formUrl = new URL(googleFormUrl)
-      formUrl.searchParams.append('entry.71619845', formData.get('name') as string)
-      formUrl.searchParams.append('entry.101981237', formData.get('company') as string)
-      formUrl.searchParams.append('entry.72098565', formData.get('email') as string)
-      formUrl.searchParams.append('entry.159268629', formData.get('phone') as string)
-      formUrl.searchParams.append('entry.141120671', formData.get('message') as string)
+    const form = e.target as HTMLFormElement
+    const formData = new FormData(form)
+    
+    // Updated phone number validation
+    const phone = formData.get('entry.1592688629') as string;
+    const phoneRegex = /^[0-9+\-.\s()]+$/;
 
-      // Submit using GET method instead of POST to avoid CORS issues
-      await fetch(formUrl.toString(), {
-        method: 'GET',
-        mode: 'no-cors'
+    if (!phoneRegex.test(phone)) {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Please enter a valid phone number using numbers.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    console.log('Phone:', phone);
+
+    // Proceed with form submission
+    try {
+      // Create a URL with the form data
+      const url = new URL('https://docs.google.com/forms/u/2/d/11qO_XyP929--QbLP9rXj9zzDPDlinZ9Nd051klkJlj8/formResponse')
+      
+      // Add all form fields to the URL
+      formData.forEach((value, key) => {
+        url.searchParams.append(key, value as string)
       })
 
+      // Log the form data for debugging
+      console.log('Form data:', Object.fromEntries(formData))
+      console.log('Final URL:', url.toString())
+
+      // Submit the form using fetch
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      })
+
+      // Show success message
       toast({
         title: "Form submitted",
         description: "Thank you for your inquiry. We'll be in touch shortly.",
       })
 
-      // Reset form
-      e.currentTarget.reset()
+      // Reset the form
+      form.reset()
     } catch (error) {
       console.error('Error:', error)
       toast({
@@ -58,63 +82,67 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6">
+    <form 
+      ref={formRef} 
+      onSubmit={handleSubmit} 
+      className="grid gap-6"
+    >
       <div className="grid gap-3">
-        <Label htmlFor="name" className="text-foreground">
+        <Label htmlFor="name-input" className="text-foreground">
           Name
         </Label>
         <Input 
-          id="name" 
-          name="name"
+          id="name-input"
+          name="entry.71619845"
           placeholder="John Smith" 
           required 
           className="border-border focus:border-accent" 
         />
       </div>
       <div className="grid gap-3">
-        <Label htmlFor="company" className="text-foreground">
+        <Label htmlFor="company-input" className="text-foreground">
           Company
         </Label>
         <Input 
-          id="company" 
-          name="company"
+          id="company-input"
+          name="entry.1019817237"
           placeholder="Your Company, Inc." 
           required 
           className="border-border focus:border-accent" 
         />
       </div>
       <div className="grid gap-3">
-        <Label htmlFor="email" className="text-foreground">
+        <Label htmlFor="email-input" className="text-foreground">
           Email
         </Label>
         <Input
-          id="email"
-          name="email"
-          placeholder="john@example.com"
+          id="email-input"
+          name="entry.720989565"
           type="email"
+          placeholder="john@example.com"
           required
           className="border-border focus:border-accent"
         />
       </div>
       <div className="grid gap-3">
-        <Label htmlFor="phone" className="text-foreground">
+        <Label htmlFor="phone-input" className="text-foreground">
           Phone
         </Label>
         <Input 
-          id="phone" 
-          name="phone"
+          id="phone-input"
+          name="entry.1592688629"
+          type="tel"
           placeholder="+1 (555) 000-0000" 
-          type="tel" 
           className="border-border focus:border-accent" 
         />
       </div>
       <div className="grid gap-3">
-        <Label htmlFor="message" className="text-foreground">
+        <Label htmlFor="message-input" className="text-foreground">
           Message
         </Label>
         <Textarea
-          id="message"
-          name="message"
+          id="message-input"
+          name="entry.1411207671"
           placeholder="Tell us about your IPO plans and how we can help..."
           className="min-h-[150px] border-border focus:border-accent"
           required

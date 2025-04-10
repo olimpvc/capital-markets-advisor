@@ -85,10 +85,12 @@ body {
 }
 
 .hero-heading {
-  @apply text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl/[1.1] bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/80;
+  @apply text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl/[1.2] bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/80;
   letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 .hero-subtext {
   @apply text-lg text-muted-foreground/90 sm:text-xl max-w-[600px] leading-relaxed;
+  margin-top: 50px;
 }
